@@ -2,7 +2,7 @@
 
 A browser-based wiring-harness diagram designer: connectors, pins, device blocks, individual conductors and looms. No server, no build step, no dependencies. Open `index.html` through any static web server.
 
-Live: https://harness-studio.kevingraehl.workers.dev/ (also linked from [electricmotogarage.com](https://electricmotogarage.com)).
+Live: https://electricmotogarage.com/tools/harness-studio/ (app: https://electricmotogarage.com/tools/harness-studio/app/).
 
 ## Features
 
