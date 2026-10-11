@@ -1,0 +1,181 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Harness Studio | Free Wiring Harness Diagram Designer</title>
+  <meta name="description" content="Free browser-based wiring harness designer: connectors, pins, wire colours, routing and looms. Includes a 2023 Light Bee X starter map. No sign-up, works offline.">
+  <link rel="canonical" href="https://harness-studio.kevingraehl.workers.dev/">
+  <meta property="og:title" content="Harness Studio: free wiring harness diagram designer">
+  <meta property="og:description" content="Design connector pinouts, wires and looms in your browser. Starter map for the 2023 Light Bee X.">
+  <meta property="og:type" content="website">
+  <link rel="stylesheet" href="styles.css?v=9">
+</head>
+<body>
+  <div id="app">
+    <header class="topbar">
+      <div class="brand"><span class="brand-mark">HS</span><div><strong>Harness Studio</strong><small id="project-status">Untitled harness</small></div></div>
+      <div class="toolbar" aria-label="Main toolbar">
+        <button data-tool="select" class="active" title="Select / move (V)">↖ Select</button>
+        <button data-tool="wire" title="Connect two pins (W)">⌁ Wire</button>
+        <button id="add-connector" title="Add connector (C)">▦ Connector</button>
+        <button id="add-device" title="Add device or battery (B)">▭ Device</button>
+        <button id="add-loom" title="Add loom outline (L)">▱ Loom</button>
+        <span class="divider"></span>
+        <button id="undo" title="Undo (⌘Z)">↶</button>
+        <button id="redo" title="Redo (⇧⌘Z)">↷</button>
+        <button id="fit" title="Fit drawing (F)">Fit</button>
+        <button id="grid-toggle" class="active" title="Show or hide grid lines">Show grid</button>
+        <button id="snap-toggle" class="active" title="Snap positions independently of grid visibility">Snap to grid</button>
+        <button id="bundle-toggle" title="Collapse named wire groups into loom trunks">Bundle view</button>
+      </div>
+      <div class="filebar">
+        <label class="language-picker" translate="no">Language / 语言<select id="ui-language" aria-label="Interface language"><option value="en">English</option><option value="ru">Русский</option><option value="zh-CN">简体中文</option><option value="es">Español</option></select></label>
+        <button id="new-project">New</button>
+        <button id="save-project" class="primary">Save</button>
+        <button id="export-json">Export</button>
+        <label class="button-label">Import<input id="import-json" type="file" accept="application/json,.json"></label>
+        <button id="export-svg">SVG</button>
+      </div>
+    </header>
+
+    <main class="workspace">
+      <aside class="left-panel">
+        <section>
+          <h2>Library</h2>
+          <div class="library-grid">
+            <button data-add-device="Battery" data-symbol="battery"><span>▥</span>Battery</button>
+            <button data-add-device="Controller" data-symbol="controller"><span>▤</span>Controller</button>
+            <button data-add-device="DC/DC Converter" data-symbol="converter"><span>⇣</span>Converter</button>
+            <button data-add-device="Motor" data-symbol="motor"><span>Ⓜ</span>Motor</button>
+            <button data-add-device="Dashboard" data-symbol="display"><span>▣</span>Display</button>
+            <button data-add-device="Ground" data-symbol="ground"><span>⏚</span>Ground</button>
+            <button data-add-device="Ignition key" data-symbol="spst"><span>⌁</span>SPST key</button>
+            <button data-add-device="Kickstand switch" data-symbol="kickstand"><span>⌞</span>Kickstand</button>
+            <button data-add-device="Hall throttle" data-symbol="throttle"><span>◒</span>Hall throttle</button>
+            <button data-add-device="5 kΩ potentiometer" data-symbol="pot"><span>↗</span>5 kΩ pot</button>
+            <button data-add-device="0.250 in spade terminal" data-symbol="spade"><span>▰</span>.250 spade</button>
+            <button data-add-device="Inline bullet connector" data-symbol="bullet"><span>●</span>Bullet</button>
+          </div>
+        </section>
+        <section>
+          <h2>Project</h2>
+          <label>Smart 90° routing<select id="routing-priority"><option value="balanced">Readable — fewer crossings</option><option value="shortest">Shorter paths</option><option value="bends">Fewer bends</option><option value="strict">Strict — no wire conflicts</option></select></label>
+          <div class="starter-actions"><button id="smart-route">Route wires</button><button id="alternate-route">Try another route</button></div>
+          <p class="tip">Keeps boxes and pins fixed. Expands bundles to show individual wires; bundle membership stays saved. Undo restores your previous routes.</p>
+          <p id="routing-report" class="tip" role="status">Routing results will show crossings, overlaps, and bends here.</p>
+          <label>Compact layout<select id="compact-layout"><option value="rows">Compact rows</option><option value="columns">Tall columns</option><option value="hub">Controller centered</option></select></label>
+          <div class="starter-actions"><button id="apply-compact">Arrange all</button><button id="lucky-layout">I'm feeling lucky</button></div>
+          <p class="tip">Moves every component and redraws bundles. Keeps Bundle view. Each lucky click tries another arrangement. Undo restores the previous one.</p>
+          <label>Group name<input id="group-name" value="New group"></label>
+          <div class="starter-actions"><button id="group-items">Group boxes</button><button id="group-wires">Bundle wires</button><button id="ungroup-items">Ungroup</button></div>
+          <p class="tip">Command/Ctrl-click or drag-select first. Group boxes moves them together; Bundle wires combines selected wires. Ungroup preserves all components and wires.</p>
+          <div class="starter-actions" aria-label="Schematic cleanup">
+            <button id="clean-schematic" title="Arrange components and route wires around boxes">Clean schematic</button>
+            <button id="restore-layout" title="Restore the project saved before cleanup">Restore original</button>
+          </div>
+          <p class="tip">Auto-arrange boxes and right-angle wires. Original project is backed up. Crossings are not junctions.</p>
+          <label>Name<input id="project-name" value="Untitled harness"></label>
+          <label>Notes<textarea id="project-notes" rows="4" placeholder="Bike year, revision, measurement conditions…"></textarea></label>
+          <label>Canvas background<input id="project-background" type="color" value="#fafbfd"></label>
+          <div class="starter-actions" aria-label="Canvas visibility presets">
+            <button id="canvas-white" type="button">White canvas</button>
+            <button id="canvas-black" type="button">Black canvas</button>
+          </div>
+          <p class="tip">Best visibility: dark canvas + grid for pale wires; white canvas + grid for printed schematics. Wire contrast halos stay automatic.</p>
+          <div class="starter-actions" aria-label="Starter maps">
+            <button id="load-light-sample">Light Bee starter</button>
+          </div>
+        </section>
+        <section class="help">
+          <h2>Quick use</h2>
+          <ol>
+            <li>Add connectors or devices.</li>
+            <li>Select <b>Wire</b>, then click two pin circles.</li>
+            <li>Select anything to edit it at right.</li>
+            <li>Drag the canvas to pan; wheel to zoom.</li>
+          </ol>
+        </section>
+      </aside>
+
+      <section class="canvas-shell" id="canvas-shell">
+        <div class="canvas-hud">
+          <span id="tool-indicator">Select mode</span>
+          <span id="zoom-indicator">100%</span>
+        </div>
+        <svg id="canvas" xmlns="http://www.w3.org/2000/svg" aria-label="Wiring harness drawing canvas">
+          <defs>
+            <pattern id="minor-grid" width="20" height="20" patternUnits="userSpaceOnUse"><path d="M 20 0 L 0 0 0 20" fill="none" stroke="var(--grid-minor)" stroke-width="1"/></pattern>
+            <pattern id="major-grid" width="100" height="100" patternUnits="userSpaceOnUse"><rect width="100" height="100" fill="url(#minor-grid)"/><path d="M 100 0 L 0 0 0 100" fill="none" stroke="var(--grid-major)" stroke-width="1.2"/></pattern>
+            <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%"><feDropShadow dx="0" dy="2" stdDeviation="3" flood-opacity=".18"/></filter>
+            <marker id="arrow" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 Z" fill="currentColor"/></marker>
+          </defs>
+          <g id="viewport">
+            <rect id="grid-bg" x="-10000" y="-10000" width="20000" height="20000" fill="url(#major-grid)"/>
+            <g id="loom-layer"></g>
+            <g id="wire-layer"></g>
+            <g id="node-layer"></g>
+            <g id="interaction-layer"></g>
+          </g>
+        </svg>
+        <div id="empty-state">
+          <strong>Build the harness from the outside in.</strong>
+          <span>Add a connector, battery, controller, or loom from the toolbars.</span>
+          <div class="empty-actions">
+            <button id="load-light-sample-empty">Load 2023 Light Bee X starter map</button>
+          </div>
+        </div>
+      </section>
+
+      <aside class="right-panel">
+        <div class="inspector-heading"><div><h2>Inspector</h2><small id="selection-kind">Nothing selected</small></div><button id="delete-selection" class="danger" disabled>Delete</button></div>
+        <div id="inspector-empty" class="inspector-empty">Select a connector, device, wire, loom, or pin to edit its properties.</div>
+        <form id="inspector" hidden></form>
+      </aside>
+    </main>
+
+    <footer class="statusbar">
+      <span id="status-message">Ready</span>
+      <span><kbd>V</kbd> select <kbd>W</kbd> wire <kbd>Del</kbd> delete <kbd>Space</kbd> pan <kbd>⌘Z</kbd> undo</span>
+    </footer>
+  </div>
+
+  <dialog id="connector-dialog">
+    <form method="dialog" id="connector-form">
+      <div class="dialog-title"><h2>Add connector</h2><button value="cancel" aria-label="Close">×</button></div>
+      <label>Connector name<input name="name" value="Connector"></label>
+      <div class="field-row"><label>Positions<input name="pinCount" type="number" min="1" max="64" value="6"></label><label>Columns<select name="columns"><option>1</option><option selected>2</option><option>3</option><option>4</option></select></label></div>
+      <div class="field-row"><label>Housing gender<select name="gender"><option>female</option><option>male</option><option>unknown</option></select></label><label>View<select name="view"><option>mating face</option><option>wire side</option></select></label></div>
+      <div class="field-row"><label>Manufacturer<input name="manufacturer" placeholder="e.g. Furukawa"></label><label>Family<input name="family" placeholder="e.g. FW-C"></label></div>
+      <div class="field-row"><label>Ordering code<input name="partNumber" placeholder="e.g. FW-C-6M-B"></label><label>Terminal series<input name="terminalSeries" placeholder="e.g. 2.3 mm (verify)"></label></div>
+      <label>Housing color<input name="color" type="color" value="#263341"></label>
+      <div class="dialog-actions"><button value="cancel">Cancel</button><button value="default" class="primary">Add connector</button></div>
+    </form>
+  </dialog>
+
+  <dialog id="device-dialog">
+    <form method="dialog" id="device-form">
+      <div class="dialog-title"><h2>Add device</h2><button value="cancel" aria-label="Close">×</button></div>
+      <label>Name<input name="name" value="Device"></label>
+      <div class="field-row"><label>Type<select name="symbol"><option value="box">Generic box</option><option value="battery">Battery</option><option value="controller">Controller</option><option value="converter">DC/DC converter</option><option value="motor">Motor</option><option value="display">Dashboard/display</option><option value="ground">Ground</option><option value="spst">SPST switch / ignition key</option><option value="kickstand">Kickstand safety switch</option><option value="throttle">Three-wire throttle</option><option value="spade">0.250 in spade terminal</option><option value="bullet">Inline bullet connector</option></select></label><label>Fill<input name="color" type="color" value="#e8eef5"></label></div>
+      <div class="field-row"><label>Width<input name="width" type="number" value="180" min="60"></label><label>Height<input name="height" type="number" value="100" min="40"></label></div>
+      <div class="dialog-actions"><button value="cancel">Cancel</button><button value="default" class="primary">Add device</button></div>
+    </form>
+  </dialog>
+
+  <dialog id="loom-dialog">
+    <form method="dialog" id="loom-form">
+      <div class="dialog-title"><h2>Add loom / bundle outline</h2><button value="cancel" aria-label="Close">×</button></div>
+      <label>Name<input name="name" value="Main loom"></label>
+      <div class="field-row"><label>Width<input name="width" type="number" value="420"></label><label>Height<input name="height" type="number" value="180"></label></div>
+      <label>Outline color<input name="color" type="color" value="#64748b"></label>
+      <div class="dialog-actions"><button value="cancel">Cancel</button><button value="default" class="primary">Add loom</button></div>
+    </form>
+  </dialog>
+
+  <script src="routing.js?v=7"></script>
+  <script src="auto-layout.js?v=11"></script>
+  <script src="app.js?v=11"></script>
+  <script src="i18n.js?v=1"></script>
+</body>
+</html>
